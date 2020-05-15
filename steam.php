@@ -1,9 +1,9 @@
 <?php
-require '/lightopenid/openid.php';
-$_STEAMAPI = "SteamAPIKey";
+require '/lightopenid/steam.php';
+$_STEAMAPI = "C1346EF262E428833E65A427561667F9";
 try 
 {
-    $openid = new LightOpenID('http://Ссылка для перехода после авторизации/');
+    $openid = new LightOpenID('http://fixupshop/');
     if(!$openid->mode) 
     {
         if(isset($_GET['login'])) 
