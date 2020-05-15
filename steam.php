@@ -1,24 +1,62 @@
-<?
-/*
-Sait: web-wost.ru
-Author: Al-Sher
-Date: 14.05.2014
-Update: 14.05.2014
-Version: 1.0
-*/
-/* Данные приложения */
-$steam=array(
-'key'=>'C1346EF262E428833E65A427561667F9',
-'redirect'=>'страница_редиректа'
-);
-/* ///Данные приложения\\\ */
-$link="<a href='https://steamcommunity.com/openid/login?openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&openid.mode=checkid_setup&openid.return_to=".urldecode($steam["redirect"])."%3Fstate=steam&openid.realm=".urldecode($steam["redirect"])."&openid.ns.sreg=http%3A%2F%2Fopenid.net%2Fextensions%2Fsreg%2F1.1&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select'>Аутентификация через Steam</a>"; // Создание ссылки для аутентификации
-echo $link;
-
-if(isset($_GET["state"]) and @$_GET["state"]=="steam") { // Проверка
-                preg_match("/^http:\/\/steamcommunity\.com\/openid\/id\/(7[0-9]{15,25}+)$/", $_GET["openid_identity"], $key); // Вытаскиваем id юзера
-                $key=$key[1];
-	$userInfo = json_decode(file_get_contents("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=".$steam["key"]."&steamids=".$key)); // Получаем информацию о пользователе
-	$userInfo=$userInfo->response->players[0]; // Переводим полученные данные в класс
+<?php
+require '/lightopenid/openid.php';
+$_STEAMAPI = "SteamAPIKey";
+try 
+{
+    $openid = new LightOpenID('http://Ссылка для перехода после авторизации/');
+    if(!$openid->mode) 
+    {
+        if(isset($_GET['login'])) 
+        {
+            $openid->identity = 'http://steamcommunity.com/openid/?l=english'; 
+            header('Location: ' . $openid->authUrl());
+        }
+?>
+<form action="?login" method="post">
+    <input type="image" src="http://cdn.steamcommunity.com/public/images/signinthroughsteam/sits_small.png">
+</form>
+<?php
+    } 
+    elseif($openid->mode == 'cancel') 
+    {
+        echo 'User has canceled authentication!';
+    } 
+    else 
+    {
+        if($openid->validate()) 
+        {
+                $id = $openid->identity;
+                // identity is something like: http://steamcommunity.com/openid/id/76561197960435530
+                // we only care about the unique account ID at the end of the URL.
+                $ptn = "/^http:\/\/steamcommunity\.com\/openid\/id\/(7[0-9]{15,25}+)$/";
+                preg_match($ptn, $id, $matches);
+                echo "User is logged in (steamID: $matches[1])\n";
+ 
+                $url = "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=$_STEAMAPI&steamids=$matches[1]";
+                $json_object= file_get_contents($url);
+                $json_decoded = json_decode($json_object);
+ 
+                foreach ($json_decoded->response->players as $player)
+                {
+                    echo "
+                    <br/>Player ID: $player->steamid
+                    <br/>Player Name: $player->personaname
+                    <br/>Profile URL: $player->profileurl
+                    <br/>SmallAvatar: <img src='$player->avatar'/> 
+                    <br/>MediumAvatar: <img src='$player->avatarmedium'/> 
+                    <br/>LargeAvatar: <img src='$player->avatarfull'/> 
+                    ";
+                }
+ 
+        } 
+        else 
+        {
+                echo "User is not logged in.\n";
+        }
+    }
+} 
+catch(ErrorException $e) 
+{
+    echo $e->getMessage();
 }
 ?>
