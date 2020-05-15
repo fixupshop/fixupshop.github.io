@@ -1,62 +1,13 @@
 <?php
-require '/lightopenid/steam.php';
-$_STEAMAPI = "C1346EF262E428833E65A427561667F9";
-try 
-{
-    $openid = new LightOpenID('http://fixupshop/');
-    if(!$openid->mode) 
-    {
-        if(isset($_GET['login'])) 
-        {
-            $openid->identity = 'http://steamcommunity.com/openid/?l=english'; 
-            header('Location: ' . $openid->authUrl());
-        }
-?>
-<form action="?login" method="post">
-    <input type="image" src="http://cdn.steamcommunity.com/public/images/signinthroughsteam/sits_small.png">
-</form>
-<?php
-    } 
-    elseif($openid->mode == 'cancel') 
-    {
-        echo 'User has canceled authentication!';
-    } 
-    else 
-    {
-        if($openid->validate()) 
-        {
-                $id = $openid->identity;
-                // identity is something like: http://steamcommunity.com/openid/id/76561197960435530
-                // we only care about the unique account ID at the end of the URL.
-                $ptn = "/^http:\/\/steamcommunity\.com\/openid\/id\/(7[0-9]{15,25}+)$/";
-                preg_match($ptn, $id, $matches);
-                echo "User is logged in (steamID: $matches[1])\n";
- 
-                $url = "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=$_STEAMAPI&steamids=$matches[1]";
-                $json_object= file_get_contents($url);
-                $json_decoded = json_decode($json_object);
- 
-                foreach ($json_decoded->response->players as $player)
-                {
-                    echo "
-                    <br/>Player ID: $player->steamid
-                    <br/>Player Name: $player->personaname
-                    <br/>Profile URL: $player->profileurl
-                    <br/>SmallAvatar: <img src='$player->avatar'/> 
-                    <br/>MediumAvatar: <img src='$player->avatarmedium'/> 
-                    <br/>LargeAvatar: <img src='$player->avatarfull'/> 
-                    ";
-                }
- 
-        } 
-        else 
-        {
-                echo "User is not logged in.\n";
-        }
-    }
-} 
-catch(ErrorException $e) 
-{
-    echo $e->getMessage();
-}
+//Version 4.0
+$steamauth['apikey'] = "C1346EF262E428833E65A427561667F9"; // Your Steam WebAPI-Key found at https://steamcommunity.com/dev/apikey
+$steamauth['domainname'] = "fixupshop.github.io"; // The main URL of your website displayed in the login page
+$steamauth['logoutpage'] = "fixupshop.github.io"; // Page to redirect to after a successfull logout (from the directory the SteamAuth-folder is located in) - NO slash at the beginning!
+$steamauth['loginpage'] = "fixupshop.github.io"; // Page to redirect to after a successfull login (from the directory the SteamAuth-folder is located in) - NO slash at the beginning!
+
+// System stuff
+if (empty($steamauth['apikey'])) {die("<div style='display: block; width: 100%; background-color: red; text-align: center;'>SteamAuth:<br>Please supply an API-Key!<br>Find this in steamauth/SteamConfig.php, Find the '<b>\$steamauth['apikey']</b>' Array. </div>");}
+if (empty($steamauth['domainname'])) {$steamauth['domainname'] = $_SERVER['SERVER_NAME'];}
+if (empty($steamauth['logoutpage'])) {$steamauth['logoutpage'] = $_SERVER['PHP_SELF'];}
+if (empty($steamauth['loginpage'])) {$steamauth['loginpage'] = $_SERVER['PHP_SELF'];}
 ?>
