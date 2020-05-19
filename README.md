@@ -1,2 +1,1 @@
-# fixupshop.github.io
-google-site-verification=yff6fu18OP80uCigz9EPuez9Y9VyZwBQG4J2CXjXugA
+# fixupshop.github.io/google-site-verification=yff6fu18OP80uCigz9EPuez9Y9VyZwBQG4J2CXjXugA
